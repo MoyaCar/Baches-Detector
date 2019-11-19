@@ -12,9 +12,11 @@ learn = cnn_learner(data,models.resnet34)
 #carga del modelo
 learn.load('baches224_rn34')
 
+#variables para prediccion
+img = open_image(path/'frame.jpg')
+
 #variables globales para opencv
 cap = cv.VideoCapture(0)
-begin = time.time()
 fp = 0
 terminado = False
 prediccion = ''
@@ -27,9 +29,20 @@ thickness = 2
 def reproducir_video():
     while(True):
         global terminado
+        global fp
+        global img
+
+        fp = fp +1
         ret, frame = cap.read()
+
         frame = cv.putText(frame, prediccion, org, font,fontScale, color, thickness, cv.LINE_AA)
         cv.imshow('video', frame)
+
+        if (fp % 90 == 0):
+            cv.imwrite('frame.jpg',frame)
+            print('captura guardada')
+            img = open_image(path/'frame.jpg')
+            print('imagen asignada')
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             terminado = True
@@ -39,27 +52,19 @@ def reproducir_video():
 
 def analisis_segundoplano():
     time.sleep(10)
-    while(True):
-        global fp
-        fp = fp +1
-        ret, frame = cap.read()
-        
+    while(terminado == False):
 
         if (fp % 90 == 0):
-            predecir_img(frame)
+            predecir_img()
 
         if (terminado == True):
             break
     
 
-def predecir_img(frame):
+def predecir_img():
     global prediccion
     start = time.time()
 
-    cv.imwrite('frame.jpg',frame)
-    print('captura guardada')
-    img = open_image(path/'frame.jpg')
-    print('imagen asignada')
     pred_class,pred_idx,outputs = learn.predict(img)
     print(pred_class)
     print(outputs)
